@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { RouteGuard } from '@/components/auth/route-guard';
 import { useAuth, useIsAdmin, useCanManage } from '@/lib/store/auth';
@@ -26,7 +26,7 @@ const navigation: NavItem[] = [
 ];
 
 function NavIcon({ icon, className }: { icon: string; className?: string }) {
-  const icons: Record<string, JSX.Element> = {
+  const icons: Record<string, React.ReactElement> = {
     home: (
       <path
         strokeLinecap="round"
