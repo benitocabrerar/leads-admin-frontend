@@ -54,23 +54,70 @@ This guide will walk you through setting up Google OAuth authentication for the 
 
 ## Step 5: Update Environment Configuration
 
+You have two options for updating the Client ID:
+
+### Option A: Automated Script (Recommended)
+
+Run the automated configuration script:
+
+```bash
+node configure-oauth.js
+```
+
+The script will:
+- Prompt you to enter your Google Client ID
+- Validate the Client ID format
+- Update `.env.production` automatically
+- Show you a preview of the changes
+- Commit and push the changes to GitHub
+- Provide next steps
+
+**Or use direct mode:**
+
+```bash
+node configure-oauth.js your-client-id.apps.googleusercontent.com
+```
+
+### Option B: Manual Configuration
+
 1. Open the `.env.production` file in the repository
 2. Replace `YOUR_GOOGLE_CLIENT_ID_HERE` with your actual Client ID:
    ```env
    NEXT_PUBLIC_API_URL=https://leads-system-v2.onrender.com
    NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-actual-client-id-here.apps.googleusercontent.com
    ```
+3. Save the file
 
-## Step 6: Deploy the Changes
+## Step 6: Verify and Deploy
 
-1. Commit the changes to git:
-   ```bash
-   git add .env.production
-   git commit -m "Configure Google OAuth Client ID"
-   git push origin main
-   ```
+### Verify Configuration (Optional but Recommended)
 
-2. The Render deployment will automatically trigger and rebuild the application with the new OAuth configuration.
+Before deploying, verify your configuration:
+
+```bash
+node verify-config.js
+```
+
+This will check:
+- Environment variables are configured correctly
+- All required files are present
+- Git repository status
+- Backend API connectivity
+- Package configuration
+
+### Deploy Changes
+
+If you used the automated script in Step 5, deployment happens automatically.
+
+If you configured manually, deploy with:
+
+```bash
+git add .env.production
+git commit -m "Configure Google OAuth Client ID"
+git push origin main
+```
+
+The Render deployment will automatically trigger and rebuild the application with the new OAuth configuration.
 
 ## Step 7: Test Authentication
 

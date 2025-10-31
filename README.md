@@ -41,7 +41,45 @@ Follow the detailed guide in [OAUTH_SETUP.md](./OAUTH_SETUP.md) to:
 4. Create OAuth credentials
 5. Update environment variables
 
-### 2. Environment Variables
+### 2. Helper Scripts
+
+The project includes automation scripts to simplify configuration and deployment:
+
+#### Configure OAuth (Recommended)
+
+Automatically configure your Google OAuth Client ID:
+
+```bash
+# Interactive mode (prompts for Client ID)
+node configure-oauth.js
+
+# Direct mode (provide Client ID as argument)
+node configure-oauth.js your-client-id.apps.googleusercontent.com
+```
+
+This script will:
+- Validate your Client ID format
+- Update `.env.production`
+- Show a preview of changes
+- Commit and push to GitHub
+- Trigger automatic deployment
+
+#### Verify Configuration
+
+Check that everything is properly configured before deployment:
+
+```bash
+node verify-config.js
+```
+
+This script checks:
+- Environment variables
+- File structure
+- Git repository status
+- Backend API connectivity
+- Package configuration
+
+### 3. Environment Variables
 
 Update `.env.production` with your Google OAuth Client ID:
 
@@ -50,7 +88,9 @@ NEXT_PUBLIC_API_URL=https://leads-system-v2.onrender.com
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 ```
 
-### 3. Local Development
+**Note:** You can use the `configure-oauth.js` script to automate this step.
+
+### 4. Local Development
 
 ```bash
 # Install dependencies
