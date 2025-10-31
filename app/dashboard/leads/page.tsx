@@ -295,11 +295,11 @@ export default function LeadsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold">
-                            {lead.first_name?.charAt(0) || lead.email?.charAt(0) || '?'}
+                            {lead.name?.charAt(0) || lead.email?.charAt(0) || '?'}
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
-                              {lead.first_name} {lead.last_name}
+                              {lead.name}
                             </div>
                             <div className="text-sm text-gray-500">{lead.email}</div>
                             {lead.phone && (
@@ -346,7 +346,7 @@ export default function LeadsPage() {
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDelete(lead.id, `${lead.first_name} ${lead.last_name}`)}
+                            onClick={() => handleDelete(lead.id, lead.name)}
                             className="text-red-600 hover:text-red-900"
                             title="Delete"
                           >
