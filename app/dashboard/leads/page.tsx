@@ -19,7 +19,6 @@ const STATUS_COLORS: Record<LeadStatus, string> = {
   NEGOTIATION: 'bg-orange-100 text-orange-800',
   WON: 'bg-green-100 text-green-800',
   LOST: 'bg-red-100 text-red-800',
-  NURTURE: 'bg-pink-100 text-pink-800',
 };
 
 export default function LeadsPage() {
