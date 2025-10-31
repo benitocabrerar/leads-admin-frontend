@@ -31,7 +31,7 @@ export default function DashboardPage() {
   const pendingLeads = leadsData?.items.filter((l: Lead) =>
     ['NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION'].includes(l.status)
   ).length || 0;
-  const activeChats = leadsData?.items.filter((l: Lead) => l.has_active_chat).length || 0;
+  const highValueLeads = leadsData?.items.filter((l: Lead) => (l.estimated_value || 0) > 0).length || 0;
 
   return (
     <div className="space-y-6">
@@ -168,12 +168,12 @@ export default function DashboardPage() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Active Chats</dt>
+                  <dt className="text-sm font-medium text-gray-500 truncate">High Value Leads</dt>
                   <dd className="text-lg font-semibold text-gray-900">
                     {leadsLoading ? (
                       <div className="animate-pulse h-6 w-12 bg-gray-200 rounded"></div>
                     ) : (
-                      activeChats
+                      highValueLeads
                     )}
                   </dd>
                 </dl>
