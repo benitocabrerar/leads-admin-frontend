@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { leadsApi } from '@/lib/api';
 import { Lead, LeadStatus } from '@/lib/types';
@@ -39,6 +39,7 @@ const STATUS_COLORS: Record<LeadStatus, string> = {
 
 export default function LeadsPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<LeadStatus | 'ALL'>('ALL');
@@ -607,7 +608,11 @@ export default function LeadsPage() {
                   </tr>
                 ) : (
                   data?.items.map((lead: Lead) => (
-                    <tr key={lead.id} className="hover:bg-gray-50">
+                    <tr
+                      key={lead.id}
+                      onClick={() => router.push(`/dashboard/leads/${lead.id}`)}
+                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold">
@@ -648,21 +653,30 @@ export default function LeadsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end gap-2">
                           <button
-                            onClick={() => handleView(lead)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleView(lead);
+                            }}
                             className="text-indigo-600 hover:text-indigo-900"
                             title="View Details"
                           >
                             View
                           </button>
                           <button
-                            onClick={() => handleEdit(lead)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(lead);
+                            }}
                             className="text-blue-600 hover:text-blue-900"
                             title="Edit"
                           >
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDelete(lead.id, lead.name)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(lead.id, lead.name);
+                            }}
                             className="text-red-600 hover:text-red-900"
                             title="Delete"
                           >
