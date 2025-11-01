@@ -25,6 +25,18 @@ export function RouteGuard({
   const router = useRouter();
   const { isAuthenticated, user, isLoading } = useAuth();
 
+  // Safety timeout: if loading takes more than 5 seconds, redirect to login
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isLoading || !user) {
+        console.warn('RouteGuard: Loading timeout - redirecting to login');
+        router.push('/login');
+      }
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [isLoading, user, router]);
+
   useEffect(() => {
     if (!isLoading) {
       // Not authenticated - redirect to login
