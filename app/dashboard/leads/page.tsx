@@ -11,6 +11,21 @@ import { leadsApi } from '@/lib/api';
 import { Lead, LeadStatus } from '@/lib/types';
 import { RouteGuard } from '@/components/auth/route-guard';
 
+// Lead creation form data type
+interface LeadFormData {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  source: string;
+  status: LeadStatus;
+  notes: string;
+  estimated_value: string;
+}
+
 const STATUS_COLORS: Record<LeadStatus, string> = {
   NEW: 'bg-blue-100 text-blue-800',
   CONTACTED: 'bg-yellow-100 text-yellow-800',
@@ -26,6 +41,20 @@ export default function LeadsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<LeadStatus | 'ALL'>('ALL');
   const [sourceFilter, setSourceFilter] = useState('');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [formData, setFormData] = useState<LeadFormData>({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    zip_code: '',
+    source: '',
+    status: LeadStatus.NEW,
+    notes: '',
+    estimated_value: '',
+  });
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
@@ -47,6 +76,27 @@ export default function LeadsPage() {
     },
   });
 
+  const createMutation = useMutation({
+    mutationFn: (data: Partial<Lead>) => leadsApi.createLead(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      setIsCreateModalOpen(false);
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        city: '',
+        state: '',
+        zip_code: '',
+        source: '',
+        status: LeadStatus.NEW,
+        notes: '',
+        estimated_value: '',
+      });
+    },
+  });
+
   const handleDelete = async (leadId: number, leadName: string) => {
     if (confirm(`Delete lead "${leadName}"? This action cannot be undone.`)) {
       await deleteMutation.mutateAsync(leadId);
@@ -56,6 +106,27 @@ export default function LeadsPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
+  };
+
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Prepare lead data
+    const leadData: Partial<Lead> = {
+      name: formData.name.trim(),
+      email: formData.email.trim() || undefined,
+      phone: formData.phone.trim() || undefined,
+      address: formData.address.trim() || undefined,
+      city: formData.city.trim() || undefined,
+      state: formData.state.trim() || undefined,
+      zip_code: formData.zip_code.trim() || undefined,
+      source: formData.source.trim(),
+      status: formData.status,
+      notes: formData.notes.trim() || undefined,
+      estimated_value: formData.estimated_value ? parseFloat(formData.estimated_value) : undefined,
+    };
+
+    await createMutation.mutateAsync(leadData);
   };
 
   if (isLoading) {
@@ -91,7 +162,7 @@ export default function LeadsPage() {
           </div>
           <div className="mt-4 sm:mt-0">
             <button
-              onClick={() => {/* TODO: Open create modal */}}
+              onClick={() => setIsCreateModalOpen(true)}
               className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -413,6 +484,168 @@ export default function LeadsPage() {
             </div>
           )}
         </div>
+
+        {/* Create Lead Modal */}
+        {isCreateModalOpen && (
+          <div className="fixed z-10 inset-0 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsCreateModalOpen(false)}></div>
+
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <form onSubmit={handleCreateSubmit}>
+                  <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Create New Lead</h3>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Name *</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                        <input
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Phone</label>
+                        <input
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Address</label>
+                        <input
+                          type="text"
+                          value={formData.address}
+                          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">City</label>
+                          <input
+                            type="text"
+                            value={formData.city}
+                            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">State</label>
+                          <input
+                            type="text"
+                            value={formData.state}
+                            onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Zip</label>
+                          <input
+                            type="text"
+                            value={formData.zip_code}
+                            onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Source *</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.source}
+                          onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+                          placeholder="e.g., Website, Referral, Door-to-door"
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Status *</label>
+                        <select
+                          required
+                          value={formData.status}
+                          onChange={(e) => setFormData({ ...formData, status: e.target.value as LeadStatus })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                          <option value={LeadStatus.NEW}>New</option>
+                          <option value={LeadStatus.CONTACTED}>Contacted</option>
+                          <option value={LeadStatus.QUALIFIED}>Qualified</option>
+                          <option value={LeadStatus.PROPOSAL}>Proposal</option>
+                          <option value={LeadStatus.NEGOTIATION}>Negotiation</option>
+                          <option value={LeadStatus.WON}>Won</option>
+                          <option value={LeadStatus.LOST}>Lost</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Estimated Value ($)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={formData.estimated_value}
+                          onChange={(e) => setFormData({ ...formData, estimated_value: e.target.value })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Notes</label>
+                        <textarea
+                          rows={3}
+                          value={formData.notes}
+                          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button
+                      type="submit"
+                      disabled={createMutation.isPending}
+                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+                    >
+                      {createMutation.isPending ? 'Creating...' : 'Create Lead'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsCreateModalOpen(false)}
+                      disabled={createMutation.isPending}
+                      className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </RouteGuard>
   );
