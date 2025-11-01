@@ -47,6 +47,11 @@ export default function LeadsPage() {
   const [cityFilter, setCityFilter] = useState('');
   const [stateFilter, setStateFilter] = useState('');
 
+  // Individual field search filters
+  const [nameFilter, setNameFilter] = useState('');
+  const [phoneFilter, setPhoneFilter] = useState('');
+  const [emailFilter, setEmailFilter] = useState('');
+
   // Quick filter toggles
   const [filterHasPhone, setFilterHasPhone] = useState(false);
   const [filterHasEmail, setFilterHasEmail] = useState(false);
@@ -110,7 +115,7 @@ export default function LeadsPage() {
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['leads', page, search, statusFilter, sourceFilter, cityFilter, stateFilter],
+    queryKey: ['leads', page, search, statusFilter, sourceFilter, cityFilter, stateFilter, nameFilter, phoneFilter, emailFilter],
     queryFn: () =>
       leadsApi.listLeads({
         page,
@@ -120,6 +125,9 @@ export default function LeadsPage() {
         source: sourceFilter || undefined,
         city: cityFilter || undefined,
         state: stateFilter || undefined,
+        name: nameFilter || undefined,
+        phone: phoneFilter || undefined,
+        email: emailFilter || undefined,
       }),
   });
 
@@ -536,6 +544,75 @@ export default function LeadsPage() {
                 placeholder="Filter by source..."
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               />
+            </div>
+
+            {/* Individual Field Search Filters */}
+            <div className="sm:col-span-4 pt-4 border-t border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">🔍 Individual Field Search</h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
+                  <label htmlFor="nameFilter" className="block text-sm font-medium text-gray-700 mb-1">
+                    Search by Name
+                  </label>
+                  <input
+                    type="text"
+                    id="nameFilter"
+                    value={nameFilter}
+                    onChange={(e) => {
+                      setNameFilter(e.target.value);
+                      setPage(1);
+                    }}
+                    placeholder="Filter by name only..."
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="phoneFilter" className="block text-sm font-medium text-gray-700 mb-1">
+                    Search by Phone
+                  </label>
+                  <input
+                    type="text"
+                    id="phoneFilter"
+                    value={phoneFilter}
+                    onChange={(e) => {
+                      setPhoneFilter(e.target.value);
+                      setPage(1);
+                    }}
+                    placeholder="Filter by phone only..."
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="emailFilter" className="block text-sm font-medium text-gray-700 mb-1">
+                    Search by Email
+                  </label>
+                  <input
+                    type="text"
+                    id="emailFilter"
+                    value={emailFilter}
+                    onChange={(e) => {
+                      setEmailFilter(e.target.value);
+                      setPage(1);
+                    }}
+                    placeholder="Filter by email only..."
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+              </div>
+              <div className="mt-3 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNameFilter('');
+                    setPhoneFilter('');
+                    setEmailFilter('');
+                    setPage(1);
+                  }}
+                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Clear Individual Filters
+                </button>
+              </div>
             </div>
           </form>
         </div>

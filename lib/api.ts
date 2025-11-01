@@ -263,6 +263,9 @@ export const leadsApi = {
     search?: string;
     city?: string;
     state?: string;
+    name?: string;
+    phone?: string;
+    email?: string;
   }): Promise<{ total: number; page: number; page_size: number; items: Lead[] }> => {
     const response = await api.get('/leads', { params });
     return response.data;
