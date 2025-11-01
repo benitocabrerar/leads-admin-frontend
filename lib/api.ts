@@ -518,6 +518,3 @@ export default {
   users: usersApi,
   leads: leadsApi,
 };
-
-// Export individual API modules as named exports
-export { authApi, usersApi, leadsApi };
