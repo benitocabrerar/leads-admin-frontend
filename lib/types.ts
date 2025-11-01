@@ -81,15 +81,15 @@ export interface UserRoleUpdate {
   role: UserRole;
 }
 
-// Lead Status
+// Lead Status (lowercase to match backend enum values)
 export enum LeadStatus {
-  NEW = 'NEW',
-  CONTACTED = 'CONTACTED',
-  QUALIFIED = 'QUALIFIED',
-  PROPOSAL = 'PROPOSAL',
-  NEGOTIATION = 'NEGOTIATION',
-  WON = 'WON',
-  LOST = 'LOST',
+  NEW = 'new',
+  CONTACTED = 'contacted',
+  QUALIFIED = 'qualified',
+  PROPOSAL = 'proposal',
+  NEGOTIATION = 'negotiation',
+  WON = 'won',
+  LOST = 'lost',
 }
 
 // Lead Model
