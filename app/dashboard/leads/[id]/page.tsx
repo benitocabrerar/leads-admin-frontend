@@ -87,7 +87,7 @@ export default function LeadDetailPage() {
       {isEditing && field ? (
         multiline ? (
           <textarea
-            value={currentData[field] || ''}
+            value={currentData[field] != null ? String(currentData[field]) : ''}
             onChange={(e) => handleChange(field, e.target.value)}
             className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             rows={3}
@@ -95,7 +95,7 @@ export default function LeadDetailPage() {
         ) : (
           <input
             type="text"
-            value={currentData[field] || ''}
+            value={currentData[field] != null ? String(currentData[field]) : ''}
             onChange={(e) => handleChange(field, e.target.value)}
             className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           />
