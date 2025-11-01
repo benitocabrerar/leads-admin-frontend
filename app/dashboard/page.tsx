@@ -15,13 +15,13 @@ export default function DashboardPage() {
   // Fetch leads statistics
   const { data: leadsData, isLoading: leadsLoading } = useQuery({
     queryKey: ['leads-stats'],
-    queryFn: () => leadsApi.listLeads({ page: 1, page_size: 1000 }), // Get all leads for stats
+    queryFn: () => leadsApi.listLeads({ page: 1, page_size: 100 }), // Max page size allowed by backend
   });
 
   // Fetch users statistics
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['users-stats'],
-    queryFn: () => usersApi.listUsers({ page: 1, page_size: 1000 }),
+    queryFn: () => usersApi.listUsers({ page: 1, page_size: 100 }),
     enabled: user?.can_manage || false, // Only fetch if user can manage
   });
 
