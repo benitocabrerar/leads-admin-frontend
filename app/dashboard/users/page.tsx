@@ -10,14 +10,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersApi } from '@/lib/api';
 import { User, UserRole } from '@/lib/types';
 import { RouteGuard } from '@/components/auth/route-guard';
+import { useCanManage } from '@/lib/store/auth';
 
 export default function UsersPage() {
+  const canManage = useCanManage();
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
 
+  // Only fetch users if the user has manager permissions
   const { data, isLoading, error } = useQuery({
     queryKey: ['users', page],
     queryFn: () => usersApi.listUsers({ page, page_size: 20 }),
+    enabled: canManage, // Only run if user has manager permissions
   });
 
   const approveMutation = useMutation({
