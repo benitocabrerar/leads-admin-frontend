@@ -43,10 +43,12 @@ const createApiClient = (): AxiosInstance => {
   client.interceptors.response.use(
     (response) => response,
     async (error: AxiosError<ApiError>) => {
+      const originalRequest = error.config;
+
+      // Handle 401 (Unauthorized) - Token expired or invalid
       if (error.response?.status === 401) {
-        // Try to refresh token
         const refreshToken = localStorage.getItem('refresh_token');
-        if (refreshToken) {
+        if (refreshToken && originalRequest) {
           try {
             const response = await axios.post<TokenResponse>(
               `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
@@ -56,22 +58,69 @@ const createApiClient = (): AxiosInstance => {
             const { access_token } = response.data;
             localStorage.setItem('access_token', access_token);
 
-            // Retry original request
-            if (error.config) {
-              error.config.headers.Authorization = `Bearer ${access_token}`;
-              return client.request(error.config);
-            }
+            // Retry original request with new token
+            originalRequest.headers.Authorization = `Bearer ${access_token}`;
+            return client.request(originalRequest);
           } catch (refreshError) {
             // Refresh failed, clear tokens and redirect to login
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
             window.location.href = '/login';
+            return Promise.reject(error);
           }
         } else {
           // No refresh token, redirect to login
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
           window.location.href = '/login';
+          return Promise.reject(error);
         }
       }
+
+      // Handle 403 (Forbidden) - Could be due to expired session or insufficient permissions
+      if (error.response?.status === 403) {
+        const errorMessage = error.response?.data?.detail || '';
+
+        // Check if it's a session-related 403 (expired, not approved, deactivated)
+        if (
+          errorMessage.includes('expired') ||
+          errorMessage.includes('invalid') ||
+          errorMessage.includes('deactivated') ||
+          errorMessage.includes('not active') ||
+          errorMessage.includes('pending approval')
+        ) {
+          // Session issue - try to refresh token
+          const refreshToken = localStorage.getItem('refresh_token');
+          if (refreshToken && originalRequest) {
+            try {
+              const response = await axios.post<TokenResponse>(
+                `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+                { refresh_token: refreshToken }
+              );
+
+              const { access_token } = response.data;
+              localStorage.setItem('access_token', access_token);
+
+              // Retry original request with new token
+              originalRequest.headers.Authorization = `Bearer ${access_token}`;
+              return client.request(originalRequest);
+            } catch (refreshError) {
+              // Refresh failed, clear tokens and redirect to login
+              localStorage.removeItem('access_token');
+              localStorage.removeItem('refresh_token');
+              window.location.href = '/login';
+              return Promise.reject(error);
+            }
+          } else {
+            // No refresh token, redirect to login
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/login';
+            return Promise.reject(error);
+          }
+        }
+      }
+
       return Promise.reject(error);
     }
   );
