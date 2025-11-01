@@ -42,7 +42,23 @@ export default function LeadsPage() {
   const [statusFilter, setStatusFilter] = useState<LeadStatus | 'ALL'>('ALL');
   const [sourceFilter, setSourceFilter] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [formData, setFormData] = useState<LeadFormData>({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    zip_code: '',
+    source: '',
+    status: LeadStatus.NEW,
+    notes: '',
+    estimated_value: '',
+  });
+  const [editFormData, setEditFormData] = useState<LeadFormData>({
     name: '',
     email: '',
     phone: '',
@@ -97,6 +113,16 @@ export default function LeadsPage() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ leadId, data }: { leadId: number; data: Partial<Lead> }) =>
+      leadsApi.updateLead(leadId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      setIsEditModalOpen(false);
+      setSelectedLead(null);
+    },
+  });
+
   const handleDelete = async (leadId: number, leadName: string) => {
     if (confirm(`Delete lead "${leadName}"? This action cannot be undone.`)) {
       await deleteMutation.mutateAsync(leadId);
@@ -127,6 +153,51 @@ export default function LeadsPage() {
     };
 
     await createMutation.mutateAsync(leadData);
+  };
+
+  const handleView = (lead: Lead) => {
+    setSelectedLead(lead);
+    setIsViewModalOpen(true);
+  };
+
+  const handleEdit = (lead: Lead) => {
+    setSelectedLead(lead);
+    setEditFormData({
+      name: lead.name || '',
+      email: lead.email || '',
+      phone: lead.phone || '',
+      address: lead.address || '',
+      city: lead.city || '',
+      state: lead.state || '',
+      zip_code: lead.zip_code || '',
+      source: lead.source || '',
+      status: lead.status,
+      notes: lead.notes || '',
+      estimated_value: lead.estimated_value?.toString() || '',
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedLead) return;
+
+    // Prepare lead data
+    const leadData: Partial<Lead> = {
+      name: editFormData.name.trim(),
+      email: editFormData.email.trim() || undefined,
+      phone: editFormData.phone.trim() || undefined,
+      address: editFormData.address.trim() || undefined,
+      city: editFormData.city.trim() || undefined,
+      state: editFormData.state.trim() || undefined,
+      zip_code: editFormData.zip_code.trim() || undefined,
+      source: editFormData.source.trim(),
+      status: editFormData.status,
+      notes: editFormData.notes.trim() || undefined,
+      estimated_value: editFormData.estimated_value ? parseFloat(editFormData.estimated_value) : undefined,
+    };
+
+    await updateMutation.mutateAsync({ leadId: selectedLead.id, data: leadData });
   };
 
   if (isLoading) {
@@ -403,14 +474,14 @@ export default function LeadsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end gap-2">
                           <button
-                            onClick={() => {/* TODO: View details */}}
+                            onClick={() => handleView(lead)}
                             className="text-indigo-600 hover:text-indigo-900"
                             title="View Details"
                           >
                             View
                           </button>
                           <button
-                            onClick={() => {/* TODO: Edit */}}
+                            onClick={() => handleEdit(lead)}
                             className="text-blue-600 hover:text-blue-900"
                             title="Edit"
                           >
@@ -636,6 +707,281 @@ export default function LeadsPage() {
                       type="button"
                       onClick={() => setIsCreateModalOpen(false)}
                       disabled={createMutation.isPending}
+                      className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* View Lead Details Modal */}
+        {isViewModalOpen && selectedLead && (
+          <div className="fixed z-10 inset-0 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsViewModalOpen(false)}></div>
+
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
+                  <div className="sm:flex sm:items-start sm:justify-between mb-4">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">Lead Details</h3>
+                    <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${STATUS_COLORS[selectedLead.status]}`}>
+                      {selectedLead.status}
+                    </span>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Contact Information */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900 mb-3">Contact Information</h4>
+                      <dl className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+                        <div>
+                          <dt className="text-sm font-medium text-gray-500">Name</dt>
+                          <dd className="mt-1 text-sm text-gray-900">{selectedLead.name}</dd>
+                        </div>
+                        {selectedLead.email && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">Email</dt>
+                            <dd className="mt-1 text-sm text-gray-900">{selectedLead.email}</dd>
+                          </div>
+                        )}
+                        {selectedLead.phone && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">Phone</dt>
+                            <dd className="mt-1 text-sm text-gray-900">{selectedLead.phone}</dd>
+                          </div>
+                        )}
+                        {selectedLead.source && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">Source</dt>
+                            <dd className="mt-1 text-sm text-gray-900">{selectedLead.source}</dd>
+                          </div>
+                        )}
+                      </dl>
+                    </div>
+
+                    {/* Address Information */}
+                    {(selectedLead.address || selectedLead.city || selectedLead.state || selectedLead.zip_code) && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-3">Address</h4>
+                        <div className="text-sm text-gray-900">
+                          {selectedLead.address && <div>{selectedLead.address}</div>}
+                          <div>
+                            {[selectedLead.city, selectedLead.state, selectedLead.zip_code]
+                              .filter(Boolean)
+                              .join(', ')}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Lead Details */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900 mb-3">Lead Details</h4>
+                      <dl className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+                        {selectedLead.estimated_value && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">Estimated Value</dt>
+                            <dd className="mt-1 text-sm text-gray-900">
+                              ${selectedLead.estimated_value.toLocaleString()}
+                            </dd>
+                          </div>
+                        )}
+                        <div>
+                          <dt className="text-sm font-medium text-gray-500">Created</dt>
+                          <dd className="mt-1 text-sm text-gray-900">
+                            {new Date(selectedLead.created_at).toLocaleString()}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
+                          <dd className="mt-1 text-sm text-gray-900">
+                            {new Date(selectedLead.updated_at).toLocaleString()}
+                          </dd>
+                        </div>
+                      </dl>
+                    </div>
+
+                    {/* Notes */}
+                    {selectedLead.notes && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-3">Notes</h4>
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedLead.notes}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                  <button
+                    type="button"
+                    onClick={() => setIsViewModalOpen(false)}
+                    className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Lead Modal */}
+        {isEditModalOpen && selectedLead && (
+          <div className="fixed z-10 inset-0 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsEditModalOpen(false)}></div>
+
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <form onSubmit={handleEditSubmit}>
+                  <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Edit Lead</h3>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Name *</label>
+                        <input
+                          type="text"
+                          required
+                          value={editFormData.name}
+                          onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                        <input
+                          type="email"
+                          value={editFormData.email}
+                          onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Phone</label>
+                        <input
+                          type="tel"
+                          value={editFormData.phone}
+                          onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Address</label>
+                        <input
+                          type="text"
+                          value={editFormData.address}
+                          onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">City</label>
+                          <input
+                            type="text"
+                            value={editFormData.city}
+                            onChange={(e) => setEditFormData({ ...editFormData, city: e.target.value })}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">State</label>
+                          <input
+                            type="text"
+                            value={editFormData.state}
+                            onChange={(e) => setEditFormData({ ...editFormData, state: e.target.value })}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Zip</label>
+                          <input
+                            type="text"
+                            value={editFormData.zip_code}
+                            onChange={(e) => setEditFormData({ ...editFormData, zip_code: e.target.value })}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Source *</label>
+                        <input
+                          type="text"
+                          required
+                          value={editFormData.source}
+                          onChange={(e) => setEditFormData({ ...editFormData, source: e.target.value })}
+                          placeholder="e.g., Website, Referral, Door-to-door"
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Status *</label>
+                        <select
+                          required
+                          value={editFormData.status}
+                          onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value as LeadStatus })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                          <option value={LeadStatus.NEW}>New</option>
+                          <option value={LeadStatus.CONTACTED}>Contacted</option>
+                          <option value={LeadStatus.QUALIFIED}>Qualified</option>
+                          <option value={LeadStatus.PROPOSAL}>Proposal</option>
+                          <option value={LeadStatus.NEGOTIATION}>Negotiation</option>
+                          <option value={LeadStatus.WON}>Won</option>
+                          <option value={LeadStatus.LOST}>Lost</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Estimated Value ($)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={editFormData.estimated_value}
+                          onChange={(e) => setEditFormData({ ...editFormData, estimated_value: e.target.value })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Notes</label>
+                        <textarea
+                          rows={3}
+                          value={editFormData.notes}
+                          onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button
+                      type="submit"
+                      disabled={updateMutation.isPending}
+                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+                    >
+                      {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditModalOpen(false)}
+                      disabled={updateMutation.isPending}
                       className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
                     >
                       Cancel
