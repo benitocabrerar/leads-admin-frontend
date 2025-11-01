@@ -308,6 +308,39 @@ export const leadsApi = {
     });
     return response.data;
   },
+
+  // Remove duplicate leads
+  removeDuplicates: async (): Promise<{
+    success: boolean;
+    message: string;
+    statistics: {
+      total_leads_before: number;
+      unique_combinations: number;
+      duplicates_removed: number;
+      remaining_leads: number;
+    };
+  }> => {
+    const response = await api.post('/leads/remove-duplicates');
+    return response.data;
+  },
+
+  // Bulk delete all leads
+  bulkDelete: async (confirmation: string, hardDelete: boolean = false): Promise<{
+    success: boolean;
+    message: string;
+    statistics: {
+      deleted_count: number;
+      delete_type: string;
+    };
+  }> => {
+    const response = await api.delete('/leads/bulk-delete', {
+      params: {
+        confirmation,
+        hard_delete: hardDelete,
+      },
+    });
+    return response.data;
+  },
 };
 
 // Export all API modules

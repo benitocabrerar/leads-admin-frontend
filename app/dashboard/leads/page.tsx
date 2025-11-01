@@ -160,6 +160,31 @@ export default function LeadsPage() {
     },
   });
 
+  const removeDuplicatesMutation = useMutation({
+    mutationFn: () => leadsApi.removeDuplicates(),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      alert(`Success! Removed ${result.statistics.duplicates_removed} duplicate leads.\n\nTotal leads before: ${result.statistics.total_leads_before}\nUnique combinations: ${result.statistics.unique_combinations}\nDuplicates removed: ${result.statistics.duplicates_removed}\nRemaining leads: ${result.statistics.remaining_leads}`);
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.detail || 'Failed to remove duplicates';
+      alert(`Error: ${message}`);
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: ({ confirmation, hardDelete }: { confirmation: string; hardDelete: boolean }) =>
+      leadsApi.bulkDelete(confirmation, hardDelete),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      alert(`Success! ${result.statistics.delete_type === 'hard' ? 'Permanently deleted' : 'Soft deleted'} ${result.statistics.deleted_count} leads.`);
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.detail || 'Failed to delete leads';
+      alert(`Error: ${message}`);
+    },
+  });
+
   const handleDelete = async (leadId: number, leadName: string) => {
     if (confirm(`Delete lead "${leadName}"? This action cannot be undone.`)) {
       await deleteMutation.mutateAsync(leadId);
@@ -297,6 +322,66 @@ export default function LeadsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
               Import Excel
+            </button>
+            <button
+              onClick={() => {
+                if (confirm('Remove all duplicate leads? This will keep the most recent version of each duplicate.')) {
+                  removeDuplicatesMutation.mutate();
+                }
+              }}
+              disabled={removeDuplicatesMutation.isPending}
+              className="inline-flex items-center px-4 py-2 border border-orange-300 shadow-sm text-sm font-medium rounded-md text-orange-700 bg-white hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {removeDuplicatesMutation.isPending ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-orange-700" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Removing...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  Remove Duplicates
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => {
+                const confirmation = prompt(
+                  'WARNING: This will delete ALL leads!\n\nType "DELETE_ALL_LEADS" to confirm:'
+                );
+                if (confirmation === 'DELETE_ALL_LEADS') {
+                  bulkDeleteMutation.mutate({
+                    confirmation: 'DELETE_ALL_LEADS',
+                    hardDelete: false
+                  });
+                } else if (confirmation !== null) {
+                  alert('Deletion cancelled - confirmation string did not match.');
+                }
+              }}
+              disabled={bulkDeleteMutation.isPending}
+              className="inline-flex items-center px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {bulkDeleteMutation.isPending ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-red-700" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete All Leads
+                </>
+              )}
             </button>
             <button
               onClick={() => setIsCreateModalOpen(true)}
