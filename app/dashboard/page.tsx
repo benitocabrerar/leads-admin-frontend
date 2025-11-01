@@ -7,7 +7,7 @@
 import { useAuth } from '@/lib/store/auth';
 import { useQuery } from '@tanstack/react-query';
 import { leadsApi, usersApi } from '@/lib/api';
-import { Lead } from '@/lib/types';
+import { Lead, LeadStatus } from '@/lib/types';
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -29,9 +29,9 @@ export default function DashboardPage() {
 
   // Calculate statistics
   const totalLeads = leadsData?.total || 0;
-  const wonLeads = leadsData?.items.filter((l: Lead) => l.status === 'WON').length || 0;
+  const wonLeads = leadsData?.items.filter((l: Lead) => l.status === LeadStatus.WON).length || 0;
   const pendingLeads = leadsData?.items.filter((l: Lead) =>
-    ['NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION'].includes(l.status)
+    ['new', 'contacted', 'qualified', 'proposal', 'negotiation'].includes(l.status)
   ).length || 0;
   const highValueLeads = leadsData?.items.filter((l: Lead) => (l.estimated_value || 0) > 0).length || 0;
 
