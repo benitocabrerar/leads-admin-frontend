@@ -558,13 +558,20 @@ export default function LeadsPage() {
 
         {/* Create Lead Modal */}
         {isCreateModalOpen && (
-          <div className="fixed z-10 inset-0 overflow-y-auto">
-            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsCreateModalOpen(false)}></div>
+          <div className="fixed z-50 inset-0 overflow-y-auto">
+            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                onClick={() => setIsCreateModalOpen(false)}
+                aria-hidden="true"
+              ></div>
 
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+              {/* Center modal vertically */}
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              {/* Modal panel */}
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full relative">
                 <form onSubmit={handleCreateSubmit}>
                   <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Create New Lead</h3>
@@ -720,13 +727,20 @@ export default function LeadsPage() {
 
         {/* View Lead Details Modal */}
         {isViewModalOpen && selectedLead && (
-          <div className="fixed z-10 inset-0 overflow-y-auto">
-            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsViewModalOpen(false)}></div>
+          <div className="fixed z-50 inset-0 overflow-y-auto">
+            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                onClick={() => setIsViewModalOpen(false)}
+                aria-hidden="true"
+              ></div>
 
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+              {/* Center modal vertically */}
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+              {/* Modal panel */}
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full relative">
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
                   <div className="sm:flex sm:items-start sm:justify-between mb-4">
                     <h3 className="text-lg leading-6 font-medium text-gray-900">Lead Details</h3>
@@ -833,13 +847,20 @@ export default function LeadsPage() {
 
         {/* Edit Lead Modal */}
         {isEditModalOpen && selectedLead && (
-          <div className="fixed z-10 inset-0 overflow-y-auto">
-            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsEditModalOpen(false)}></div>
+          <div className="fixed z-50 inset-0 overflow-y-auto">
+            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                onClick={() => setIsEditModalOpen(false)}
+                aria-hidden="true"
+              ></div>
 
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+              {/* Center modal vertically */}
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              {/* Modal panel */}
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full relative">
                 <form onSubmit={handleEditSubmit}>
                   <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Edit Lead</h3>
