@@ -703,7 +703,7 @@ export default function LeadsPage() {
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">New</dt>
                       <dd className="text-lg font-semibold text-gray-900">
-                        {filteredLeads.filter((l: Lead) => l.status === 'NEW').length}
+                        {filteredLeads.filter((l: Lead) => l.status === LeadStatus.NEW).length}
                       </dd>
                     </dl>
                   </div>
@@ -722,7 +722,7 @@ export default function LeadsPage() {
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">Won</dt>
                       <dd className="text-lg font-semibold text-gray-900">
-                        {filteredLeads.filter((l: Lead) => l.status === 'WON').length}
+                        {filteredLeads.filter((l: Lead) => l.status === LeadStatus.WON).length}
                       </dd>
                     </dl>
                   </div>
