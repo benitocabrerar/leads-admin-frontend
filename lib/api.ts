@@ -341,6 +341,34 @@ export const leadsApi = {
     });
     return response.data;
   },
+
+  // Get geographic statistics
+  getGeographicStats: async (): Promise<{
+    success: boolean;
+    data: {
+      total_leads: number;
+      total_states: number;
+      total_cities: number;
+      states: Array<{
+        state: string;
+        total_leads: number;
+        total_cities: number;
+        statuses: Record<string, number>;
+        sources: Record<string, number>;
+      }>;
+      cities: Array<{
+        city: string;
+        state: string;
+        total_leads: number;
+        statuses: Record<string, number>;
+        sources: Record<string, number>;
+        avg_priority: number;
+      }>;
+    };
+  }> => {
+    const response = await api.get('/leads/geographic-stats');
+    return response.data;
+  },
 };
 
 // Export all API modules
