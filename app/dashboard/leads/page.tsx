@@ -742,7 +742,7 @@ export default function LeadsPage() {
                       <dt className="text-sm font-medium text-gray-500 truncate">In Progress</dt>
                       <dd className="text-lg font-semibold text-gray-900">
                         {filteredLeads.filter((l: Lead) =>
-                          ['CONTACTED', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION'].includes(l.status)
+                          ['contacted', 'qualified', 'proposal', 'negotiation'].includes(l.status)
                         ).length}
                       </dd>
                     </dl>
