@@ -24,6 +24,7 @@ export default function DashboardPage() {
     queryKey: ['users-stats'],
     queryFn: () => usersApi.listUsers({ page: 1, page_size: 100 }),
     enabled: !!user && user.can_manage === true, // Only fetch if user exists and has manage permission
+    retry: false, // Don't retry on 403 errors - permission errors shouldn't be retried
   });
 
   // Calculate statistics
