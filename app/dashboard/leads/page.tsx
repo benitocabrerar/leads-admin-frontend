@@ -43,12 +43,23 @@ export default function LeadsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<LeadStatus | 'ALL'>('ALL');
   const [sourceFilter, setSourceFilter] = useState('');
+  const [cityFilter, setCityFilter] = useState('');
+  const [stateFilter, setStateFilter] = useState('');
 
-  // Read search parameter from URL on component mount
+  // Read filter parameters from URL on component mount
   useEffect(() => {
     const searchQuery = searchParams.get('search');
+    const cityQuery = searchParams.get('city');
+    const stateQuery = searchParams.get('state');
+
     if (searchQuery) {
       setSearch(searchQuery);
+    }
+    if (cityQuery) {
+      setCityFilter(cityQuery);
+    }
+    if (stateQuery) {
+      setStateFilter(stateQuery);
     }
   }, [searchParams]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -93,7 +104,7 @@ export default function LeadsPage() {
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['leads', page, search, statusFilter, sourceFilter],
+    queryKey: ['leads', page, search, statusFilter, sourceFilter, cityFilter, stateFilter],
     queryFn: () =>
       leadsApi.listLeads({
         page,
@@ -101,6 +112,8 @@ export default function LeadsPage() {
         search: search || undefined,
         status: statusFilter !== 'ALL' ? statusFilter : undefined,
         source: sourceFilter || undefined,
+        city: cityFilter || undefined,
+        state: stateFilter || undefined,
       }),
   });
 

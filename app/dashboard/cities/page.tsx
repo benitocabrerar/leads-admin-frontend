@@ -56,13 +56,14 @@ export default function CitiesPage() {
 
   // Navigate to leads filtered by city
   const handleCityClick = (city: string, state: string) => {
-    // Search by city name only since city and state are separate fields in the database
-    router.push(`/dashboard/leads?search=${encodeURIComponent(city)}`);
+    // Use dedicated city parameter for exact filtering
+    router.push(`/dashboard/leads?city=${encodeURIComponent(city)}`);
   };
 
   // Navigate to leads filtered by state
   const handleStateClick = (state: string) => {
-    router.push(`/dashboard/leads?search=${encodeURIComponent(state)}`);
+    // Use dedicated state parameter for exact filtering
+    router.push(`/dashboard/leads?state=${encodeURIComponent(state)}`);
   };
 
   // Get status color
