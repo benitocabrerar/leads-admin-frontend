@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { leadsApi } from '@/lib/api';
@@ -46,6 +46,11 @@ export default function LeadsPage() {
   const [sourceFilter, setSourceFilter] = useState('');
   const [cityFilter, setCityFilter] = useState('');
   const [stateFilter, setStateFilter] = useState('');
+
+  // Quick filter toggles
+  const [filterHasPhone, setFilterHasPhone] = useState(false);
+  const [filterHasEmail, setFilterHasEmail] = useState(false);
+  const [filterStatusWon, setFilterStatusWon] = useState(false);
 
   // Read filter parameters from URL on component mount
   useEffect(() => {
@@ -117,6 +122,38 @@ export default function LeadsPage() {
         state: stateFilter || undefined,
       }),
   });
+
+  // Apply client-side quick filters with AND logic
+  const filteredLeads = useMemo(() => {
+    if (!data?.items) return [];
+
+    return data.items.filter((lead: Lead) => {
+      // Check if lead has phone (any phone field)
+      const hasPhone = !!(
+        lead.phone ||
+        lead.phone_2 ||
+        lead.phone_3 ||
+        lead.phone_4 ||
+        lead.landline_1 ||
+        lead.landline_2 ||
+        lead.landline_3 ||
+        lead.landline_4
+      );
+
+      // Check if lead has email
+      const hasEmail = !!(lead.email || lead.email_2);
+
+      // Check if lead status is WON
+      const isWon = lead.status === LeadStatus.WON;
+
+      // Apply AND logic: all enabled filters must match
+      if (filterHasPhone && !hasPhone) return false;
+      if (filterHasEmail && !hasEmail) return false;
+      if (filterStatusWon && !isWon) return false;
+
+      return true;
+    });
+  }, [data?.items, filterHasPhone, filterHasEmail, filterStatusWon]);
 
   const deleteMutation = useMutation({
     mutationFn: (leadId: number) => leadsApi.deleteLead(leadId),
@@ -478,6 +515,121 @@ export default function LeadsPage() {
           </form>
         </div>
 
+        {/* Quick Filters */}
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 border-2 border-indigo-200">
+          <div className="mb-2">
+            <h3 className="text-sm font-semibold text-gray-700">⚡ Quick Filters</h3>
+            <p className="text-xs text-gray-500">Toggle filters to refine your results (AND logic)</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Has Phone Filter */}
+            <button
+              type="button"
+              onClick={() => setFilterHasPhone(!filterHasPhone)}
+              className={`p-4 rounded-lg border-2 transition-all duration-200 ${
+                filterHasPhone
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border-blue-700 text-white shadow-lg transform scale-105'
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">📞</span>
+                  <div className="text-left">
+                    <div className="font-semibold">Has Phone</div>
+                    <div className="text-xs opacity-80">
+                      {filterHasPhone ? 'Active' : 'Click to activate'}
+                    </div>
+                  </div>
+                </div>
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                  filterHasPhone ? 'border-white bg-white' : 'border-gray-400'
+                }`}>
+                  {filterHasPhone && <span className="text-indigo-600">✓</span>}
+                </div>
+              </div>
+            </button>
+
+            {/* Has Email Filter */}
+            <button
+              type="button"
+              onClick={() => setFilterHasEmail(!filterHasEmail)}
+              className={`p-4 rounded-lg border-2 transition-all duration-200 ${
+                filterHasEmail
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 border-purple-700 text-white shadow-lg transform scale-105'
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">📧</span>
+                  <div className="text-left">
+                    <div className="font-semibold">Has Email</div>
+                    <div className="text-xs opacity-80">
+                      {filterHasEmail ? 'Active' : 'Click to activate'}
+                    </div>
+                  </div>
+                </div>
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                  filterHasEmail ? 'border-white bg-white' : 'border-gray-400'
+                }`}>
+                  {filterHasEmail && <span className="text-purple-600">✓</span>}
+                </div>
+              </div>
+            </button>
+
+            {/* Status WON Filter */}
+            <button
+              type="button"
+              onClick={() => setFilterStatusWon(!filterStatusWon)}
+              className={`p-4 rounded-lg border-2 transition-all duration-200 ${
+                filterStatusWon
+                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 border-green-700 text-white shadow-lg transform scale-105'
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">🏆</span>
+                  <div className="text-left">
+                    <div className="font-semibold">Status: WON</div>
+                    <div className="text-xs opacity-80">
+                      {filterStatusWon ? 'Active' : 'Click to activate'}
+                    </div>
+                  </div>
+                </div>
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                  filterStatusWon ? 'border-white bg-white' : 'border-gray-400'
+                }`}>
+                  {filterStatusWon && <span className="text-green-600">✓</span>}
+                </div>
+              </div>
+            </button>
+          </div>
+
+          {/* Active filters count */}
+          {(filterHasPhone || filterHasEmail || filterStatusWon) && (
+            <div className="mt-3 pt-3 border-t border-indigo-200">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-700">
+                  <strong>{[filterHasPhone, filterHasEmail, filterStatusWon].filter(Boolean).length}</strong> quick filter{[filterHasPhone, filterHasEmail, filterStatusWon].filter(Boolean).length > 1 ? 's' : ''} active
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilterHasPhone(false);
+                    setFilterHasEmail(false);
+                    setFilterStatusWon(false);
+                  }}
+                  className="text-indigo-600 hover:text-indigo-800 font-medium"
+                >
+                  Clear all
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Stats */}
         {data && (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -510,7 +662,7 @@ export default function LeadsPage() {
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">New</dt>
                       <dd className="text-lg font-semibold text-gray-900">
-                        {data.items.filter((l: Lead) => l.status === 'NEW').length}
+                        {filteredLeads.filter((l: Lead) => l.status === 'NEW').length}
                       </dd>
                     </dl>
                   </div>
@@ -529,7 +681,7 @@ export default function LeadsPage() {
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">Won</dt>
                       <dd className="text-lg font-semibold text-gray-900">
-                        {data.items.filter((l: Lead) => l.status === 'WON').length}
+                        {filteredLeads.filter((l: Lead) => l.status === 'WON').length}
                       </dd>
                     </dl>
                   </div>
@@ -548,7 +700,7 @@ export default function LeadsPage() {
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">In Progress</dt>
                       <dd className="text-lg font-semibold text-gray-900">
-                        {data.items.filter((l: Lead) =>
+                        {filteredLeads.filter((l: Lead) =>
                           ['CONTACTED', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION'].includes(l.status)
                         ).length}
                       </dd>
@@ -590,7 +742,7 @@ export default function LeadsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {data?.items.length === 0 ? (
+                {filteredLeads.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center">
                       <div className="text-gray-500">
@@ -607,7 +759,7 @@ export default function LeadsPage() {
                     </td>
                   </tr>
                 ) : (
-                  data?.items.map((lead: Lead) => (
+                  filteredLeads.map((lead: Lead) => (
                     <tr
                       key={lead.id}
                       onClick={() => router.push(`/dashboard/leads/${lead.id}`)}
