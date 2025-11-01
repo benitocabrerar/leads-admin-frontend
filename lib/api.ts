@@ -239,6 +239,25 @@ export const leadsApi = {
     const response = await api.get<Note[]>(`/leads/${leadId}/notes`);
     return response.data;
   },
+
+  // Import leads from Excel file
+  importLeads: async (file: File): Promise<{
+    success: boolean;
+    created: number;
+    total_rows: number;
+    errors?: Array<{ row: number; error: string }>;
+    message: string;
+  }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post('/leads/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
 };
 
 // Export all API modules

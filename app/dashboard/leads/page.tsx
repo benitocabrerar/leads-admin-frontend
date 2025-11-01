@@ -44,7 +44,16 @@ export default function LeadsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [importResult, setImportResult] = useState<{
+    success: boolean;
+    created: number;
+    total_rows: number;
+    errors?: Array<{ row: number; error: string }>;
+    message: string;
+  } | null>(null);
   const [formData, setFormData] = useState<LeadFormData>({
     name: '',
     email: '',
@@ -120,6 +129,23 @@ export default function LeadsPage() {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       setIsEditModalOpen(false);
       setSelectedLead(null);
+    },
+  });
+
+  const importMutation = useMutation({
+    mutationFn: (file: File) => leadsApi.importLeads(file),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      setImportResult(result);
+      setSelectedFile(null);
+    },
+    onError: (error: any) => {
+      setImportResult({
+        success: false,
+        created: 0,
+        total_rows: 0,
+        message: error.response?.data?.detail || 'Failed to import leads',
+      });
     },
   });
 
@@ -200,6 +226,26 @@ export default function LeadsPage() {
     await updateMutation.mutateAsync({ leadId: selectedLead.id, data: leadData });
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setImportResult(null);
+    }
+  };
+
+  const handleImportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile) return;
+    await importMutation.mutateAsync(selectedFile);
+  };
+
+  const handleImportClose = () => {
+    setIsImportModalOpen(false);
+    setSelectedFile(null);
+    setImportResult(null);
+  };
+
   if (isLoading) {
     return (
       <RouteGuard requireApproval>
@@ -231,7 +277,16 @@ export default function LeadsPage() {
               View and manage all leads in the system
             </p>
           </div>
-          <div className="mt-4 sm:mt-0">
+          <div className="mt-4 sm:mt-0 flex gap-3">
+            <button
+              onClick={() => setIsImportModalOpen(true)}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              Import Excel
+            </button>
             <button
               onClick={() => setIsCreateModalOpen(true)}
               className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -1009,6 +1064,162 @@ export default function LeadsPage() {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Import Excel Modal */}
+        {isImportModalOpen && (
+          <div className="fixed z-50 inset-0 overflow-y-auto">
+            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                onClick={handleImportClose}
+                aria-hidden="true"
+              ></div>
+
+              {/* Center modal vertically */}
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+              {/* Modal panel */}
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full relative">
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Import Leads from Excel</h3>
+
+                  {!importResult ? (
+                    <form onSubmit={handleImportSubmit}>
+                      <div className="space-y-4">
+                        {/* Expected columns info */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                          <h4 className="text-sm font-semibold text-blue-900 mb-2">Expected Excel Columns:</h4>
+                          <div className="text-xs text-blue-800 grid grid-cols-2 gap-x-4 gap-y-1">
+                            <div>• address</div>
+                            <div>• city</div>
+                            <div>• state</div>
+                            <div>• zip</div>
+                            <div>• email_1</div>
+                            <div>• email_2</div>
+                            <div>• phone_1, phone_2, phone_3, phone_4</div>
+                            <div>• landline_1, landline_2, landline_3, landline_4</div>
+                            <div>• mailing_address</div>
+                            <div>• mailing_city, mailing_state, mailing_zip</div>
+                            <div>• owner_1_first_name, owner_1_last_name</div>
+                            <div>• owner_2_first_name, owner_2_last_name</div>
+                            <div>• source_file</div>
+                          </div>
+                        </div>
+
+                        {/* File input */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Select Excel File (.xlsx or .xls) *
+                          </label>
+                          <input
+                            type="file"
+                            accept=".xlsx,.xls"
+                            onChange={handleFileSelect}
+                            required
+                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                          />
+                          {selectedFile && (
+                            <p className="mt-2 text-sm text-gray-600">
+                              Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mt-6 sm:flex sm:flex-row-reverse">
+                        <button
+                          type="submit"
+                          disabled={!selectedFile || importMutation.isPending}
+                          className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {importMutation.isPending ? 'Importing...' : 'Import Leads'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleImportClose}
+                          disabled={importMutation.isPending}
+                          className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    /* Import results */
+                    <div className="space-y-4">
+                      {/* Success/Error banner */}
+                      <div className={`rounded-md p-4 ${importResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                        <div className="flex">
+                          <div className="flex-shrink-0">
+                            {importResult.success ? (
+                              <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                            ) : (
+                              <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </div>
+                          <div className="ml-3">
+                            <h3 className={`text-sm font-medium ${importResult.success ? 'text-green-800' : 'text-red-800'}`}>
+                              {importResult.message}
+                            </h3>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Import statistics */}
+                      {importResult.success && (
+                        <div className="bg-gray-50 rounded-md p-4">
+                          <dl className="grid grid-cols-2 gap-4">
+                            <div>
+                              <dt className="text-sm font-medium text-gray-500">Total Rows</dt>
+                              <dd className="text-2xl font-semibold text-gray-900">{importResult.total_rows}</dd>
+                            </div>
+                            <div>
+                              <dt className="text-sm font-medium text-gray-500">Successfully Created</dt>
+                              <dd className="text-2xl font-semibold text-green-600">{importResult.created}</dd>
+                            </div>
+                          </dl>
+                        </div>
+                      )}
+
+                      {/* Errors list */}
+                      {importResult.errors && importResult.errors.length > 0 && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                          <h4 className="text-sm font-semibold text-yellow-900 mb-2">
+                            Errors ({importResult.errors.length}):
+                          </h4>
+                          <div className="max-h-60 overflow-y-auto">
+                            <ul className="text-xs text-yellow-800 space-y-1">
+                              {importResult.errors.map((error, idx) => (
+                                <li key={idx}>
+                                  <strong>Row {error.row}:</strong> {error.error}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={handleImportClose}
+                          className="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
