@@ -56,8 +56,8 @@ export default function CitiesPage() {
 
   // Navigate to leads filtered by city
   const handleCityClick = (city: string, state: string) => {
-    const searchQuery = `${city}, ${state}`;
-    router.push(`/dashboard/leads?search=${encodeURIComponent(searchQuery)}`);
+    // Search by city name only since city and state are separate fields in the database
+    router.push(`/dashboard/leads?search=${encodeURIComponent(city)}`);
   };
 
   // Navigate to leads filtered by state
