@@ -24,6 +24,7 @@ const createApiClient = (): AxiosInstance => {
     headers: {
       'Content-Type': 'application/json',
     },
+    timeout: 300000, // 5 minutes default timeout for long-running operations
   });
 
   // Request interceptor to add auth token
