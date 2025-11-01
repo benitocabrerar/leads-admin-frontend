@@ -155,6 +155,31 @@ export default function LeadsPage() {
     });
   }, [data?.items, filterHasPhone, filterHasEmail, filterStatusWon]);
 
+  // Calculate individual filter counts for display
+  const countsWithPhone = useMemo(() => {
+    if (!data?.items) return 0;
+    return data.items.filter((lead: Lead) => !!(
+      lead.phone ||
+      lead.phone_2 ||
+      lead.phone_3 ||
+      lead.phone_4 ||
+      lead.landline_1 ||
+      lead.landline_2 ||
+      lead.landline_3 ||
+      lead.landline_4
+    )).length;
+  }, [data?.items]);
+
+  const countsWithEmail = useMemo(() => {
+    if (!data?.items) return 0;
+    return data.items.filter((lead: Lead) => !!(lead.email || lead.email_2)).length;
+  }, [data?.items]);
+
+  const countsWithWonStatus = useMemo(() => {
+    if (!data?.items) return 0;
+    return data.items.filter((lead: Lead) => lead.status === LeadStatus.WON).length;
+  }, [data?.items]);
+
   const deleteMutation = useMutation({
     mutationFn: (leadId: number) => leadsApi.deleteLead(leadId),
     onSuccess: () => {
@@ -540,6 +565,9 @@ export default function LeadsPage() {
                     <div className="text-xs opacity-80">
                       {filterHasPhone ? 'Active' : 'Click to activate'}
                     </div>
+                    <div className={`text-xs font-bold mt-1 ${filterHasPhone ? 'text-blue-100' : 'text-blue-600'}`}>
+                      {countsWithPhone} leads
+                    </div>
                   </div>
                 </div>
                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
@@ -567,6 +595,9 @@ export default function LeadsPage() {
                     <div className="font-semibold">Has Email</div>
                     <div className="text-xs opacity-80">
                       {filterHasEmail ? 'Active' : 'Click to activate'}
+                    </div>
+                    <div className={`text-xs font-bold mt-1 ${filterHasEmail ? 'text-purple-100' : 'text-purple-600'}`}>
+                      {countsWithEmail} leads
                     </div>
                   </div>
                 </div>
@@ -596,6 +627,9 @@ export default function LeadsPage() {
                     <div className="text-xs opacity-80">
                       {filterStatusWon ? 'Active' : 'Click to activate'}
                     </div>
+                    <div className={`text-xs font-bold mt-1 ${filterStatusWon ? 'text-green-100' : 'text-green-600'}`}>
+                      {countsWithWonStatus} leads
+                    </div>
                   </div>
                 </div>
                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
@@ -607,13 +641,20 @@ export default function LeadsPage() {
             </button>
           </div>
 
-          {/* Active filters count */}
-          {(filterHasPhone || filterHasEmail || filterStatusWon) && (
-            <div className="mt-3 pt-3 border-t border-indigo-200">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-700">
-                  <strong>{[filterHasPhone, filterHasEmail, filterStatusWon].filter(Boolean).length}</strong> quick filter{[filterHasPhone, filterHasEmail, filterStatusWon].filter(Boolean).length > 1 ? 's' : ''} active
-                </span>
+          {/* Active filters count and results summary */}
+          <div className="mt-3 pt-3 border-t border-indigo-200">
+            <div className="flex items-center justify-between text-sm">
+              <div className="space-y-1">
+                {(filterHasPhone || filterHasEmail || filterStatusWon) && (
+                  <div className="text-gray-700">
+                    <strong>{[filterHasPhone, filterHasEmail, filterStatusWon].filter(Boolean).length}</strong> quick filter{[filterHasPhone, filterHasEmail, filterStatusWon].filter(Boolean).length > 1 ? 's' : ''} active
+                  </div>
+                )}
+                <div className="text-gray-600 font-medium">
+                  Showing <strong className="text-indigo-600">{filteredLeads.length}</strong> of <strong>{data?.items.length || 0}</strong> total leads
+                </div>
+              </div>
+              {(filterHasPhone || filterHasEmail || filterStatusWon) && (
                 <button
                   type="button"
                   onClick={() => {
@@ -625,9 +666,9 @@ export default function LeadsPage() {
                 >
                   Clear all
                 </button>
-              </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         {/* Stats */}
