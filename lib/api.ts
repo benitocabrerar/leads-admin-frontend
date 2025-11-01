@@ -15,6 +15,18 @@ import type {
   Activity,
   Note,
   ApiError,
+  ChatSession,
+  ChatSessionDetail,
+  ChatSessionListResponse,
+  ChatMessage,
+  ChatMessageListResponse,
+  TelegramBotStatus,
+  TelegramSendMessageRequest,
+  TelegramSendMessageResponse,
+  MessageSender,
+  MessageType,
+  SessionStatus,
+  SessionChannel,
 } from './types';
 
 // Create axios instance
@@ -373,9 +385,139 @@ export const leadsApi = {
   },
 };
 
+// ==================== Chat Sessions API ====================
+export const chatSessionsApi = {
+  // Get all sessions for a lead
+  getSessionsByLead: async (leadId: number): Promise<ChatSessionListResponse> => {
+    const response = await api.get(`/chat-sessions/lead/${leadId}/sessions`);
+    return response.data;
+  },
+
+  // Get active sessions for a lead
+  getActiveSessionsByLead: async (leadId: number): Promise<ChatSessionListResponse> => {
+    const response = await api.get(`/chat-sessions/lead/${leadId}/active`);
+    return response.data;
+  },
+
+  // Get a session with all messages
+  getSession: async (sessionId: number): Promise<ChatSessionDetail> => {
+    const response = await api.get(`/chat-sessions/${sessionId}`);
+    return response.data;
+  },
+
+  // List all chat sessions with optional filters
+  listSessions: async (params?: {
+    page?: number;
+    page_size?: number;
+    lead_id?: number;
+    channel?: SessionChannel;
+    status?: SessionStatus;
+  }): Promise<ChatSessionListResponse> => {
+    const response = await api.get('/chat-sessions', { params });
+    return response.data;
+  },
+
+  // Create a new chat session
+  createSession: async (data: {
+    lead_id: number;
+    session_id: string;
+    channel: SessionChannel;
+    status?: SessionStatus;
+    telegram_chat_id?: string;
+    initial_message?: string;
+  }): Promise<ChatSession> => {
+    const response = await api.post('/chat-sessions', data);
+    return response.data;
+  },
+
+  // End a chat session
+  endSession: async (sessionId: number): Promise<ChatSession> => {
+    const response = await api.post(`/chat-sessions/${sessionId}/end`);
+    return response.data;
+  },
+};
+
+// ==================== Chat Messages API ====================
+export const chatMessagesApi = {
+  // Get all messages for a session
+  getMessagesBySession: async (sessionId: number): Promise<ChatMessageListResponse> => {
+    const response = await api.get(`/chat-messages/session/${sessionId}/messages`);
+    return response.data;
+  },
+
+  // List chat messages with optional filters
+  listMessages: async (params?: {
+    page?: number;
+    page_size?: number;
+    session_id?: number;
+    sender_type?: MessageSender;
+    message_type?: MessageType;
+    is_read?: boolean;
+    processed_by_ai?: boolean;
+  }): Promise<ChatMessageListResponse> => {
+    const response = await api.get('/chat-messages', { params });
+    return response.data;
+  },
+
+  // Create a new chat message
+  createMessage: async (data: {
+    session_id: number;
+    sender_type: MessageSender;
+    sender_id?: string;
+    sender_name?: string;
+    message_type?: MessageType;
+    content: string;
+    telegram_message_id?: string;
+  }): Promise<ChatMessage> => {
+    const response = await api.post('/chat-messages', data);
+    return response.data;
+  },
+
+  // Get a single message
+  getMessage: async (messageId: number): Promise<ChatMessage> => {
+    const response = await api.get(`/chat-messages/${messageId}`);
+    return response.data;
+  },
+
+  // Mark a message as read
+  markAsRead: async (messageId: number): Promise<ChatMessage> => {
+    const response = await api.post(`/chat-messages/${messageId}/mark-read`);
+    return response.data;
+  },
+
+  // Mark all messages in a session as read
+  markSessionMessagesAsRead: async (sessionId: number): Promise<void> => {
+    await api.post(`/chat-messages/session/${sessionId}/mark-all-read`);
+  },
+};
+
+// ==================== Telegram API ====================
+export const telegramApi = {
+  // Send a message to a lead via Telegram
+  sendMessage: async (
+    leadId: number,
+    message: string
+  ): Promise<TelegramSendMessageResponse> => {
+    const response = await api.post('/telegram/send', {
+      lead_id: leadId,
+      message,
+    } as TelegramSendMessageRequest);
+    return response.data;
+  },
+
+  // Get Telegram bot status
+  getBotStatus: async (): Promise<TelegramBotStatus> => {
+    const response = await api.get('/telegram/status');
+    return response.data;
+  },
+};
+
 // Export all API modules
 export default {
   auth: authApi,
   users: usersApi,
   leads: leadsApi,
 };
+
+// Export individual API modules as named exports
+export { authApi, usersApi, leadsApi };

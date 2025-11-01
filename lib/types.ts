@@ -193,21 +193,131 @@ export interface Note {
   updated_at: string;
 }
 
-// Chat Session
-export interface ChatSession {
-  id: number;
-  session_id: string;
-  lead_id?: number;
-  started_at: string;
-  ended_at?: string;
-  is_active: boolean;
+// Enums for Chat
+export enum MessageSender {
+  LEAD = 'lead',
+  AGENT = 'agent',
+  BOT = 'bot',
+  SYSTEM = 'system',
+}
+
+export enum MessageType {
+  TEXT = 'text',
+  IMAGE = 'image',
+  FILE = 'file',
+  VOICE = 'voice',
+  VIDEO = 'video',
+  LOCATION = 'location',
+  CONTACT = 'contact',
+  STICKER = 'sticker',
+  SYSTEM_NOTIFICATION = 'system_notification',
+}
+
+export enum SessionStatus {
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+  ABANDONED = 'abandoned',
+  TRANSFERRED = 'transferred',
+}
+
+export enum SessionChannel {
+  TELEGRAM = 'telegram',
+  WEB_CHAT = 'web_chat',
+  WEBHOOK = 'webhook',
 }
 
 // Chat Message
 export interface ChatMessage {
   id: number;
   session_id: number;
-  message: string;
-  is_from_user: boolean;
+  sender_type: MessageSender;
+  sender_id?: string;
+  sender_name?: string;
+  message_type: MessageType;
+  content: string;
+  is_read: boolean;
+  read_at?: string;
+  is_delivered: boolean;
+  delivered_at?: string;
+  reply_to_message_id?: number;
+  thread_id?: string;
+  media_url?: string;
+  media_size?: number;
+  media_mime_type?: string;
+  media_filename?: string;
+  external_id?: string;
+  telegram_message_id?: string;
+  n8n_execution_id?: string;
+  processed_by_ai: boolean;
+  ai_response_time_ms?: number;
+  ai_model_used?: string;
   created_at: string;
+  updated_at: string;
+}
+
+// Chat Session
+export interface ChatSession {
+  id: number;
+  lead_id: number;
+  session_id: string;
+  channel: SessionChannel;
+  status: SessionStatus;
+  started_at?: string;
+  ended_at?: string;
+  last_activity_at?: string;
+  handled_by?: string;
+  transferred_to?: string;
+  transferred_at?: string;
+  satisfaction_rating?: number;
+  satisfaction_feedback?: string;
+  external_id?: string;
+  telegram_chat_id?: string;
+  n8n_execution_id?: string;
+  initial_message?: string;
+  summary?: string;
+  tags?: string;
+  message_count: number;
+  duration_seconds?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Chat Session with Messages
+export interface ChatSessionDetail extends ChatSession {
+  messages: ChatMessage[];
+}
+
+// List Responses
+export interface ChatMessageListResponse {
+  total: number;
+  page: number;
+  page_size: number;
+  items: ChatMessage[];
+}
+
+export interface ChatSessionListResponse {
+  total: number;
+  page: number;
+  page_size: number;
+  items: ChatSession[];
+}
+
+// Telegram Bot Status
+export interface TelegramBotStatus {
+  status: 'running' | 'stopped';
+  bot_username: string;
+  ready: boolean;
+}
+
+// Telegram Send Message Request
+export interface TelegramSendMessageRequest {
+  lead_id: number;
+  message: string;
+}
+
+// Telegram Send Message Response
+export interface TelegramSendMessageResponse {
+  success: boolean;
+  message_id?: string;
+  error?: string;
 }

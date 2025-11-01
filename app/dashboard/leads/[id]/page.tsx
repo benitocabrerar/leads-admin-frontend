@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { leadsApi } from '@/lib/api';
 import { useRouter, useParams } from 'next/navigation';
 import { Lead } from '@/lib/types';
+import { TelegramChat } from '@/components/telegram/telegram-chat';
 
 export default function LeadDetailPage() {
   const router = useRouter();
@@ -386,6 +387,16 @@ export default function LeadDetailPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Telegram Chat Section */}
+        <div className="bg-white shadow rounded-lg">
+          <TelegramChat
+            leadId={leadId}
+            leadName={lead.name}
+            telegramUsername={lead.telegram_username}
+            telegramUserId={lead.telegram_user_id}
+          />
         </div>
       </div>
     </div>
