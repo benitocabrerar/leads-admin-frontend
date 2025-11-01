@@ -5,7 +5,8 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { leadsApi } from '@/lib/api';
 import { Lead, LeadStatus } from '@/lib/types';
@@ -37,10 +38,19 @@ const STATUS_COLORS: Record<LeadStatus, string> = {
 };
 
 export default function LeadsPage() {
+  const searchParams = useSearchParams();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<LeadStatus | 'ALL'>('ALL');
   const [sourceFilter, setSourceFilter] = useState('');
+
+  // Read search parameter from URL on component mount
+  useEffect(() => {
+    const searchQuery = searchParams.get('search');
+    if (searchQuery) {
+      setSearch(searchQuery);
+    }
+  }, [searchParams]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
