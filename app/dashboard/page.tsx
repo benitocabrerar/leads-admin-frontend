@@ -9,9 +9,15 @@ import { useQuery } from '@tanstack/react-query';
 import { leadsApi, usersApi } from '@/lib/api';
 import { Lead, LeadStatus } from '@/lib/types';
 import Link from 'next/link';
+import { useEffect } from 'react';
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
+
+  // Refresh user data on mount to ensure localStorage is in sync with JWT
+  useEffect(() => {
+    refreshUser();
+  }, []);
 
   // Fetch leads statistics
   const { data: leadsData, isLoading: leadsLoading } = useQuery({
