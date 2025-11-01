@@ -9,12 +9,12 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Apply COOP headers to all routes for Google Sign-In One Tap
+        // Apply permissive COOP headers for Google Sign-In FedCM API
         source: '/:path*',
         headers: [
           {
             key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin-allow-popups',
+            value: 'unsafe-none',
           },
         ],
       },
