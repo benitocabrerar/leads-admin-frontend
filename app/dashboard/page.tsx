@@ -23,7 +23,7 @@ export default function DashboardPage() {
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['users-stats'],
     queryFn: () => usersApi.listUsers({ page: 1, page_size: 100 }),
-    enabled: user?.can_manage || false, // Only fetch if user can manage
+    enabled: !!user && user.can_manage === true, // Only fetch if user exists and has manage permission
   });
 
   // Calculate statistics
