@@ -268,9 +268,9 @@ export default function CitiesPage() {
                   <div className="mb-4">
                     <div className="text-xs font-medium text-gray-500 mb-2">STATUS BREAKDOWN</div>
                     <div className="space-y-1">
-                      {Object.entries(item.statuses)
+                      {(Object.entries(item.statuses) as Array<[string, number]>)
                         .slice(0, 3)
-                        .map(([status, count]: [string, number]) => (
+                        .map(([status, count]) => (
                           <div key={status} className="flex items-center justify-between text-sm">
                             <span className="text-gray-600">{status.replace('_', ' ')}</span>
                             <span className="font-semibold text-gray-900">{count}</span>
