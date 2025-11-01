@@ -28,13 +28,13 @@ interface LeadFormData {
 }
 
 const STATUS_COLORS: Record<LeadStatus, string> = {
-  NEW: 'bg-blue-100 text-blue-800',
-  CONTACTED: 'bg-yellow-100 text-yellow-800',
-  QUALIFIED: 'bg-purple-100 text-purple-800',
-  PROPOSAL: 'bg-indigo-100 text-indigo-800',
-  NEGOTIATION: 'bg-orange-100 text-orange-800',
-  WON: 'bg-green-100 text-green-800',
-  LOST: 'bg-red-100 text-red-800',
+  new: 'bg-blue-100 text-blue-800',
+  contacted: 'bg-yellow-100 text-yellow-800',
+  qualified: 'bg-purple-100 text-purple-800',
+  proposal: 'bg-indigo-100 text-indigo-800',
+  negotiation: 'bg-orange-100 text-orange-800',
+  won: 'bg-green-100 text-green-800',
+  lost: 'bg-red-100 text-red-800',
 };
 
 export default function LeadsPage() {
