@@ -218,7 +218,7 @@ export default function CitiesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredData.map((item: any, index: number) => {
             const isCity = viewMode === 'cities';
-            const topStatus = Object.entries(item.statuses).sort((a: any, b: any) => b[1] - a[1])[0];
+            const topStatus = Object.entries(item.statuses).sort((a: any, b: any) => (b[1] as number) - (a[1] as number))[0] as [string, number] | undefined;
 
             return (
               <div
@@ -270,7 +270,7 @@ export default function CitiesPage() {
                     <div className="space-y-1">
                       {Object.entries(item.statuses)
                         .slice(0, 3)
-                        .map(([status, count]: [string, any]) => (
+                        .map(([status, count]: [string, number]) => (
                           <div key={status} className="flex items-center justify-between text-sm">
                             <span className="text-gray-600">{status.replace('_', ' ')}</span>
                             <span className="font-semibold text-gray-900">{count}</span>
